@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Data files (too large for GitHub)
+white_stork_gps.csv/
+white_stork_location.csv/
+
+# Model checkpoints (large binary files)
+checkpoints/*.pt
+
+# OS
+.DS_Store
+__MACOSX/
+Thumbs.db
