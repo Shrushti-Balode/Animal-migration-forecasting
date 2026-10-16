@@ -1,70 +1,102 @@
-## Animal Migration Forecasting with Climate Context
+# 🦅 Animal Migration Forecasting with Climate Context
 
-This project builds a deep learning model to **forecast migratory animal trajectories** (starting with white storks from Movebank) using GPS-like time series data, optionally conditioned on environmental features.
+An LSTM-based deep learning project for forecasting migratory bird trajectories from GPS tracking data.
 
-### 1. Project structure
+## Overview
 
-- `white_stork_gps.csv/`  
-  Raw Movebank export (currently contains acceleration data; you will typically also export GPS locations as a separate file).
-- `requirements.txt`  
-  Python dependencies.
-- `data_prep.py`  
-  Utilities to load, clean, and window Movebank-style GPS data into model-ready sequences.
-- `model.py`  
-  PyTorch sequence model (LSTM) for trajectory forecasting.
-- `train.py`  
-  End-to-end training script.
+This project uses the previous 20 GPS positions of a white stork to predict its next 5 positions, represented by latitude and longitude coordinates.
 
-### 2. Expected GPS data format
+## Model Architecture
 
-For **trajectory forecasting**, the loader in `data_prep.py` assumes a **Movebank GPS export** with at least:
+| Parameter | Value |
+|---|---|
+| Architecture | LSTM |
+| Input sequence | 20 GPS positions |
+| Forecast horizon | 5 future positions |
+| Hidden size | 128 |
+| Number of layers | 2 |
+| Dropout | 0.2 |
+| Loss function | Mean Squared Error (MSE) |
+| Optimizer | Adam |
 
-- `timestamp` – datetime string
-- `individual-local-identifier` – animal ID
-- `location-long` – longitude
-- `location-lat` – latitude
+## Dataset
 
-Your current file  
-`white_stork_gps.csv/LifeTrack White Stork SW Germany_2013-2019-acceleration-1of3.csv`  
-is an **acceleration sensor file** (no latitude/longitude), so it cannot by itself be used for migration path prediction.
+- **Source:** [Movebank](https://www.movebank.org/)
+- **Study:** LifeTrack White Stork SW Germany (2013–2019)
+- **Required data:** GPS location records containing timestamps, animal identifiers, latitude, and longitude.
 
-To run the full trajectory pipeline you should:
+The dataset is not included in this repository. Obtain the appropriate location data from Movebank and configure its local path before training. Acceleration sensor records alone are insufficient for geographic trajectory forecasting.
 
-1. Export the **GPS (location)** data for the same study from Movebank as CSV.
-2. Save it under, for example:
+## Project Structure
 
-   - `white_stork_gps.csv/white_stork_locations.csv`
+```text
+ML_CP/
+├── data_prep.py
+├── model.py
+├── train.py
+├── requirements.txt
+├── README.md
+├── .gitignore
+└── checkpoints/        # Generated locally
+```
 
-3. Ensure it has the columns listed above (Movebank exports usually do).
+## Installation
 
-The code will then use that GPS file as the main data source.
-
-### 3. Setup
+Requires Python and pip.
 
 ```bash
 python -m venv .venv
-.venv\Scripts\activate  # on Windows
-pip install -r requirements.txt
 ```
 
-### 4. Basic usage
+Activate the environment on Windows:
 
-After you have a GPS CSV (e.g. `white_stork_gps.csv/white_stork_locations.csv`), run:
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+Install dependencies:
 
 ```bash
-python train.py --data-path white_stork_gps.csv/white_stork_locations.csv
+python -m pip install -r requirements.txt
 ```
 
-This will:
+## Usage
 
-1. Load and clean the data.
-2. Build sliding-window sequences per individual.
-3. Train an LSTM model to predict the **next K future positions** from the last **T past positions**.
-4. Save the trained model weights to `checkpoints/trajectory_lstm.pt`.
+Prepare a GPS CSV with these columns:
 
-### 5. Next steps
+- `timestamp`
+- `individual-local-identifier`
+- `location-long`
+- `location-lat`
 
-- Add climate / vegetation features by joining external datasets (e.g. MODIS NDVI, temperature) on time and approximate location, then extending the feature vector in `data_prep.py`.
-- Experiment with more advanced architectures (`TransformerEncoder`, seq2seq, graph-based models).
-- Evaluate migration forecasts seasonally and under different climate scenarios.
+Run the training pipeline using the path to your local GPS file:
 
+```bash
+python train.py --data-path "PATH_TO_YOUR_GPS_FILE.csv"
+```
+
+Optional parameters include `--epochs`, `--batch-size`, `--max-animals`, and `--device`.
+
+The training script saves the best validation checkpoint to `checkpoints/trajectory_lstm.pt` by default and reports final test loss.
+
+## Reported Experiment
+
+An earlier experiment reported a best validation MSE of approximately 0.006. This result has not been independently reproduced as part of this repository documentation.
+
+MSE is calculated on raw latitude and longitude coordinates, so it should not be interpreted directly as a distance in kilometres.
+
+## Future Improvements
+
+- Incorporate temperature, vegetation, and other environmental features.
+- Compare LSTM performance with Transformer and sequence-to-sequence models.
+- Evaluate spring and autumn migration separately.
+- Visualize actual and predicted trajectories on geographic maps.
+- Evaluate forecast errors using meaningful geographic distance metrics.
+
+## Technologies
+
+Python · PyTorch · Pandas · NumPy · Scikit-learn · Matplotlib · LSTM
+
+## Author
+
+Shrushti Balode
